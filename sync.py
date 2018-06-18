@@ -3,9 +3,6 @@ import urllib3, re, sqlite3, os
 from pprint import pprint
 from inspect import getmembers
 
-
-
-### FUNCTIONS
 def retrieveChild(parent):
   url = plexlocation + parent.get('key')
   get = http.request('GET', url,  headers={'X-Plex-Token': plextoken})
@@ -20,14 +17,15 @@ def retrieveSection(id):
 def backupShows():
   print("TV SHOWS #################################################################################################################")
   print('{0:50} | {1:10} | {2:30}'.format("Name:", "Season:", "Episodes:"))
+  
   ## retrieve shows
   global conn
   root = retrieveSection(plexshowsection)
 
   for show in root.iter('Directory'):
     title = show.get('title')
-
     seasonroot = retrieveChild(show)
+
     for season in seasonroot.iter('Directory'):
       if season.get("title") != "All episodes":
         episoderoot = retrieveChild(season)
@@ -58,7 +56,6 @@ def backupMovies():
   for video in root.iter('Video'):
     title = video.get('title')
     vc = video.get('viewCount') or 0
-    imdb = "-"
     if (vc):
         metaroot = retrieveChild(video)
         meta = metaroot.find('./Video')
@@ -72,7 +69,7 @@ def backupMovies():
 
 def main():
   global conn, c, plexlocation, plextoken, plexmoviesection, plexshowsection, http
-  #need to find a better way then to use globals
+  #TODO: find a better way then to use globals
 
   ## Laptop without connection, abuse vagrant to generate a network with IP
   plexlocation = os.environ['PLEXLOCATION']
@@ -95,13 +92,7 @@ def main():
 
   backupShows()
   backupMovies()
-          
-          
-      
-    
 
-
-  
   # closing database connection (all write actions should be commited)
   conn.close()
 
