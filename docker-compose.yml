@@ -1,0 +1,10 @@
+version: "3"
+services:
+  python:
+    build: docker/
+    volumes:
+    - .:/data/
+    command: tail -f /var/log/dpkg.log
+    environment:
+      PLEXLOCATION: "${PLEXLOCATION}"
+      PLEXTOKEN: "${PLEXTOKEN}"
