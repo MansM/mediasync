@@ -19,69 +19,102 @@ def backupShows():
   print('{0:50} | {1:10} | {2:30}'.format("Name:", "Season:", "Episodes:"))
   
   ## retrieve shows
-  global conn
-  root = retrieveSection(plexshowsection)
+  sections = findPlexSections("show")
+  for section in sections:
+    root = retrieveSection(section)
 
-  for show in root.iter('Directory'):
-    title = show.get('title')
-    seasonroot = retrieveChild(show)
+    for show in root.iter('Directory'):
+      title = show.get('title')
+      seasonroot = retrieveChild(show)
 
-    for season in seasonroot.iter('Directory'):
-      if season.get("title") != "All episodes":
-        episoderoot = retrieveChild(season)
-        episodes = ""
-        for episode in episoderoot.iter('Video'):     
-          vc = episode.get('viewCount') or 0
-          if vc:
-            metaroot = retrieveChild(episode)
-            meta = metaroot.find('./Video')
-            regex = r"thetvdb://\d+/\d+/\d+"
-            results = re.search(regex, meta.get('guid'))
-            if results != None: 
-              episodes += str(results.group(0)) + ","
-              c.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
-        episodes = episodes.rstrip(",")
-        conn.commit()
-        if episodes != "": 
-          print('{0:50} | {1:10} | {2:30}'.format(title, season.get('title'), episodes))
+      for season in seasonroot.iter('Directory'):
+        if season.get("title") != "All episodes":
+          episoderoot = retrieveChild(season)
+          episodes = ""
+          for episode in episoderoot.iter('Video'):     
+            vc = episode.get('viewCount') or 0
+            if vc:
+              metaroot = retrieveChild(episode)
+              meta = metaroot.find('./Video')
+              regex = r"thetvdb://\d+/\d+/\d+"
+              results = re.search(regex, meta.get('guid'))
+              if results != None: 
+                episodes += str(results.group(0)) + ", "
+                c.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
+          episodes = episodes.rstrip(", ")
+          conn.commit()
+          if episodes != "": 
+            print('{0:50} | {1:10} | {2:30}'.format(title, season.get('title'), episodes))
 
 def backupMovies():
   print("MOVIES ###################################################################################################################")
   print('{0:50} | {1:10} | {2:30}'.format("Name:", "Watched:", "IMDB ID:"))
 
-  ## retrieve movies
-  root = retrieveSection(plexmoviesection)
-  root.findall("./Video")
+  sections = findPlexSections("movie")
+  for section in sections:
+    ## retrieve movies
+    root = retrieveSection(section)
+    root.findall("./Video")
 
-  for video in root.iter('Video'):
-    title = video.get('title')
-    vc = video.get('viewCount') or 0
-    if (vc):
-        metaroot = retrieveChild(video)
-        meta = metaroot.find('./Video')
-        regex = r"imdb://tt\d+"
-        results = re.search(regex, meta.get('guid'))
-        if results != None: 
-          print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
-          c.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
-          conn.commit()
+    for video in root.iter('Video'):
+      title = video.get('title')
+      vc = video.get('viewCount') or 0
+      if vc:
+          metaroot = retrieveChild(video)
+          meta = metaroot.find('./Video')
+          regex = r"imdb://tt\d+"
+          results = re.search(regex, meta.get('guid'))
+          if results != None: 
+            print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
+            c.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
+            conn.commit()
 
+def restoreShows():
+  for row in c.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
+    setPlexEpisodeSeen(row[0])
+    
+
+def setPlexEpisodeSeen(episodeid):
+  #for some reason this works, without adding episode  number in the url, it will also find episode 20-29 when searching for number 2
+  episodenr = episodeid.split("/")[-1]
+  url = plexlocation + "/library/all?index=" + episodenr + "&guid=com.plexapp.agents." + episodeid
+  req = http.request('GET', url,  headers={'X-Plex-Token': plextoken})
+  root = etree.fromstring(req._body.decode("utf8"))
+  if int(root.get('size')) == 1: 
+    if root.find("Video").get("viewCount") is None:
+      episodekey = root.find("Video").get("ratingKey")
+      seenurl = plexlocation + "/:/scrobble?key=" + episodekey + "&identifier=com.plexapp.plugins.library"
+      seenreq = http.request('GET', seenurl,  headers={'X-Plex-Token': plextoken})
+      if seenreq.status == 200:
+        print("Updated: " + episodeid)
+      else:
+        print("Error: " + seenreq.status + " - " + episodeid)
+    elif int(root.get('size')) > 1:
+      print("ERROR:" + episodeid)
+    
+
+def findPlexSections(contentType):
+  url = plexlocation + "/library/sections?"
+  get = http.request('GET', url,  headers={'X-Plex-Token': plextoken})
+  sectionsroot = etree.fromstring(get._body.decode("utf8"))
+  agent=""
+  if contentType == "show": agent="com.plexapp.agents.thetvdb"
+  elif contentType == "movie": agent="com.plexapp.agents.imdb"
+
+  results = sectionsroot.findall("./Directory/[@agent='" + agent + "']")
+  sections = []
+  for section in results:
+    sections.append(section.get("key"))
+  return sections
 
 def main():
-  global conn, c, plexlocation, plextoken, plexmoviesection, plexshowsection, http
+  global conn, c, plexlocation, plextoken, http
   #TODO: find a better way then to use globals
 
   ## Laptop without connection, abuse vagrant to generate a network with IP
   plexlocation = os.environ['PLEXLOCATION']
 
   plextoken = os.environ['PLEXTOKEN']
-
-  # at shield movies = 6, at laptop 1
-  # shows at shield = 7. at laptop 4
-  # TODO: create auto detect mechanism
-  plexmoviesection = 6
-  plexshowsection = 7
-
   #share one poolmanager so we cant set it up to not nuke PMS
   http = urllib3.PoolManager()
   conn = sqlite3.connect('media.db')
@@ -92,6 +125,7 @@ def main():
 
   backupShows()
   backupMovies()
+  restoreShows()
 
   # closing database connection (all write actions should be commited)
   conn.close()
