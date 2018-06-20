@@ -1,3 +1,4 @@
 .env
 media.db
 .vscode
+*__pycache__/
