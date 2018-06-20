@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import xml.etree.ElementTree as etree
 import urllib3, re, sqlite3, os
 from pprint import pprint
@@ -71,26 +72,34 @@ def backupMovies():
 
 def restoreShows():
   for row in c.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
-    setPlexEpisodeSeen(row[0])
+    setPlexSeen(row[0])
     
+def restoreMovies():
+  for row in c.execute("SELECT * FROM media WHERE id LIKE 'imdb://%'"):
+    setPlexSeen(row[0])
 
-def setPlexEpisodeSeen(episodeid):
+def setPlexSeen(itemid):
   #for some reason this works, without adding episode  number in the url, it will also find episode 20-29 when searching for number 2
-  episodenr = episodeid.split("/")[-1]
-  url = plexlocation + "/library/all?index=" + episodenr + "&guid=com.plexapp.agents." + episodeid
+  
+  if itemid[:4] =="thet":
+    episodenr = itemid.split("/")[-1]
+    url = plexlocation + "/library/all?index=" + episodenr + "&guid=com.plexapp.agents." + itemid
+  else:
+    url = plexlocation + "/library/all?&guid=com.plexapp.agents." + itemid
+
   req = http.request('GET', url,  headers={'X-Plex-Token': plextoken})
   root = etree.fromstring(req._body.decode("utf8"))
   if int(root.get('size')) == 1: 
     if root.find("Video").get("viewCount") is None:
-      episodekey = root.find("Video").get("ratingKey")
-      seenurl = plexlocation + "/:/scrobble?key=" + episodekey + "&identifier=com.plexapp.plugins.library"
+      itemkey = root.find("Video").get("ratingKey")
+      seenurl = plexlocation + "/:/scrobble?key=" + itemkey + "&identifier=com.plexapp.plugins.library"
       seenreq = http.request('GET', seenurl,  headers={'X-Plex-Token': plextoken})
       if seenreq.status == 200:
-        print("Updated: " + episodeid)
+        print("Updated: " + itemid)
       else:
-        print("Error: " + seenreq.status + " - " + episodeid)
+        print("Error: " + seenreq.status + " - " + itemid)
     elif int(root.get('size')) > 1:
-      print("ERROR:" + episodeid)
+      print("ERROR:" + itemid)
     
 
 def findPlexSections(contentType):
