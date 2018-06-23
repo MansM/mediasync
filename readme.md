@@ -39,19 +39,21 @@ curl --verbose -X POST -H "Content-Type: application/json" --data-binary '{
 
 curl --verbose -X POST -H "Content-Type: application/json" --data-binary '{
   "jsonrpc": "2.0",
-  "method": "VideoLibrary.GetTVShows",
+  "method": "VideoLibrary.GetEpisodes",
   "params": {
-    "filter": {
-      "field": "episodeguide",
-      "operator": "isnot",
-      "value": ""
-      },
+    "tvshowid": 60,
     "properties": [
-      "imdbnumber",
-      "uniqueid",
-      "episodeguide"
+      "tvshowid",
+      "uniqueid"
     ]
   },
   "id": "libTvShows"
 }' ${KODILOCATION}/jsonrpc|jq
 
+
+
+    "filter": {
+      "field": "imdbnumber",
+      "operator": "is",
+      "value": 340666
+      },

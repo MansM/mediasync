@@ -15,9 +15,13 @@ class Kodi():
 
   def kodiRequest(self, payload):
     encoded_data = json.dumps(payload).encode('utf-8')
-    r = poolmanager.request('POST', self.url, body=encoded_data, headers={"Content-Type": "application/json"})
-    return json.loads(r._body.decode("utf8"))
-
+    r = ""
+    try:
+      r = poolmanager.request('POST', self.url, body=encoded_data, headers={"Content-Type": "application/json"})
+      return json.loads(r._body.decode("utf8"))
+    except (urllib3.exceptions.ProtocolError):
+      return None
+    
   def getShowid_byTVDBID(self, id):
     if self.listShow == None:
       payload = {
@@ -40,6 +44,40 @@ class Kodi():
     for show in self.listShow:
       if show["imdbnumber"] == id:
         return show["tvshowid"]
+
+  def getEpisodeid(self, thetvdbid):
+    regex = r"thetvdb://(?P<id>\d+)/(?P<season>\d+)/(?P<episode>\d+)"
+    results = re.search(regex, thetvdbid)
+    if self.getShowid_byTVDBID(results.group("id")):
+      payload = {
+        "jsonrpc": "2.0",
+        "method": "VideoLibrary.GetEpisodes",
+        "params": {
+          "tvshowid": self.getShowid_byTVDBID(results.group("id")),
+          "filter": {
+            "and" : [{
+              "field": "season",
+              "operator": "is",
+              "value": results.group("season")
+            },
+            {
+              "field": "episode",
+              "operator": "is",
+              "value": results.group("episode")
+            }
+            ]
+          },
+          "properties": [
+            "tvshowid",
+            "uniqueid"
+          ]
+        },
+        "id": "libTvShows"
+        }
+      returnvalues=[]
+      for episode in self.kodiRequest(payload)["result"]["episodes"]:
+        returnvalues.append(episode["episodeid"])
+      return returnvalues
 
 
   def backupShows(self):
@@ -91,3 +129,25 @@ class Kodi():
             #print(show["tvshowid"] + " - " )
     else:
       print("ERROR no tv shows")
+
+  def setSeen(self, bla):
+    print(bla)
+
+  def restoreShows(self):
+    for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
+      episodeids = self.getEpisodeid(row[0])
+      if episodeids != None:
+        for epi_id in episodeids:
+          payload = {
+              "jsonrpc": "2.0",
+              "method": "VideoLibrary.SetEpisodeDetails",
+              "params": {
+                "episodeid": epi_id,
+                "playcount": 1
+              }
+          }
+          self.kodiRequest(payload)
+
+  def restoreMovies(self):
+    for row in db.execute("SELECT * FROM media WHERE id LIKE 'imdb://%'"):
+      self.setSeen(row[0])
