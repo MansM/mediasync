@@ -6,5 +6,6 @@ services:
     - .:/data/
     command: tail -f /var/log/dpkg.log
     environment:
+      KODILOCATION: "${KODILOCATION}"
       PLEXLOCATION: "${PLEXLOCATION}"
       PLEXTOKEN: "${PLEXTOKEN}"

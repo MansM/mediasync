@@ -96,6 +96,14 @@ class Plex():
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
               db.commit()
 
+  def restoreShows(self):
+    for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
+      self.setPlexSeen(row[0])
+
+  def restoreMovies(self):
+    for row in db.execute("SELECT * FROM media WHERE id LIKE 'imdb://%'"):
+      self.setPlexSeen(row[0])
+
   def setPlexSeen(self, itemid):
     #for some reason this works, without adding episode  number in the url, it will also find episode 20-29 when searching for number 2
     
@@ -103,7 +111,7 @@ class Plex():
       episodenr = itemid.split("/")[-1]
       url = self.plexlocation + "/library/all?index=" + episodenr + "&guid=com.plexapp.agents." + itemid
     else:
-      url = self.plexlocation + "/library/all?&guid=com.plexapp.agents." + itemid
+      url = self.plexlocation + "/library/all?guid=com.plexapp.agents." + itemid
 
     req = poolmanager.request('GET', url,  headers={'X-Plex-Token': self.plextoken})
     root = etree.fromstring(req._body.decode("utf8"))
