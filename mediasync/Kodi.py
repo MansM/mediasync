@@ -1,6 +1,7 @@
-import urllib3, os, re, json, logging
+import urllib3, os, re, json
 from .db import db
 from .poolmanager import poolmanager
+from .Logger import logger
 
 __all__ = ['Kodi']
 
@@ -98,7 +99,6 @@ class Kodi():
       for show in results["result"]["tvshows"]:
         #TODO: fix this in the query to kodi, but couldnt get it to work
         if show["imdbnumber"] != "":
-          #print('{0:50} | {1:10} | {2:30}'.format(show["label"], str(show["imdbnumber"]), str(show["tvshowid"])))
           episodes_payload = {
             "jsonrpc": "2.0",
             "method": "VideoLibrary.GetEpisodes",
@@ -123,15 +123,13 @@ class Kodi():
           e_results = self.kodiRequest(episodes_payload)
           if "episodes" in e_results["result"]:
             for episode in e_results["result"]["episodes"]:
-              #print("thetvdb://" + str(show["imdbnumber"]) + "/" + str(episode["season"]) + "/" + str(episode["episode"]))
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('thetvdb://%s/%d/%d')" % (show["imdbnumber"], episode["season"], episode["episode"]))
               db.commit()
-            #print(show["tvshowid"] + " - " )
     else:
-      print("ERROR no tv shows")
+      logger.error("no tv shows")
 
   def setSeen(self, bla):
-    print(bla)
+    logger.debug('bla')
 
   def restoreShows(self):
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):

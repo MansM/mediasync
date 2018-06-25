@@ -1,0 +1,17 @@
+plex:
+  - name: local
+    location: http://127.0.0.1:32400
+    token: abcdef123456789
+  # - name: mediaplayer-livingroom
+  #   location: http://192.168.0.15:32400
+  #   token: abcdef123456789
+
+kodi: 
+  - name: local
+    location: http://127.0.0.1:8080
+  # - name: mediaplayer-sleepingroom
+  #   location: http://192.168.0.17:8080
+
+log:
+  file: output.log
+  level: DEBUG

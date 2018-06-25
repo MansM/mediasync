@@ -1,50 +1,32 @@
 #!/usr/bin/env python3
 from mediasync import Plex
 from mediasync import Kodi
+from mediasync import Settings
+from mediasync.Logger import logger
+
 import yaml, logging
 
 def main():
 
-  settingsfile = open("settings.yaml", 'r').read()
-  settings = yaml.safe_load(settingsfile)
-
-  try: loglevel = settings["log"]["level"]
-  except: loglevel = "INFO"
+  settings = Settings()
   
-  logging.basicConfig(filename=settings["log"]["file"], format='%(asctime)s %(message)s', level=int(getattr(logging, loglevel )))
-  logging.info("Log started")
-  logging.debug("first debug")
+  logger.configure(settings.logfile, settings.loglevel)
+  settings.initMedia()
+  
+  logger.info("Log started")
 
-  plexes, kodis = [], []
-
-  for plexinstance in settings["plex"]:
-    plexes.append(Plex(plexinstance["location"], plexinstance["token"]))
-
-  for kodiinstance in settings["kodi"]:
-    kodis.append(Kodi(kodiinstance["location"]))
-
-  for plex in plexes:
+  for plex in settings.plexes:
     plex.backupShows()
 
-  for kodi in kodis:
+  for kodi in settings.kodis:
     kodi.backupShows()
 
-  logging.debug("log end")
-  # plex = Plex()
-  # kodi = Kodi()
-
-  # plex.backupShows()
-  # kodi.backupShows()
+  logger.debug("log end")
  
-  # # plex.restoreMovies()
+  # plex.restoreMovies()
   # plex.restoreShows()
   # kodi.restoreShows()
-  # print(kodi.getShowid_byTVDBID("328687"))
-  # regex = r"thetvdb://(?P<id>\d+)/(?P<season>\d+)/(?P<episode>\d+)"
-  # results = re.search(regex, "thetvdb://328687/1/9")
-  # print(results.group("id"))  
-  # for group in results.groups():
-  #   print(group)
+
 
 if __name__ == "__main__":
   main()

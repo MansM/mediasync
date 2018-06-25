@@ -1,4 +1,6 @@
 import urllib3,logging, atexit
+from .Logger import logger
+
 
 class PoolManager(object):
   def __init__(self):
@@ -7,7 +9,7 @@ class PoolManager(object):
     atexit.register(self.cleanup)
 
   def cleanup(self):
-    logging.debug("PoolManager closed, httpcounter: " + str(self.counter))
+    logger.debug("PoolManager closed, httpcounter: " + str(self.counter))
 
   def request(self, method, url, body=None, headers=None):
     self.counter+=1

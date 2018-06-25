@@ -1,7 +1,8 @@
 import xml.etree.ElementTree as etree
-import urllib3, os, re, logging
+import urllib3, os, re
 from .db import db
 from .poolmanager import poolmanager
+from .Logger import logger
 
 
 __all__ = ['Plex']
@@ -11,9 +12,7 @@ class Plex():
   def __init__(self, location="http://127.0.0.1:32400", token=None, *args):
     self.plexlocation = location
     self.plextoken = token
-    logging.info("New Plex instance at: " + str(self.plexlocation))
-
-    #self.http = urllib3.PoolManager()
+    logger.info("New Plex instance at: " + str(self.plexlocation))
   
   def __enter__(self):
     return self
@@ -44,9 +43,6 @@ class Plex():
     return sections
 
   def backupShows(self):
-    #print("TV SHOWS #################################################################################################################")
-    #print('{0:50} | {1:10} | {2:30}'.format("Name:", "Season:", "Episodes:"))
-    
     ## retrieve shows
     sections = self.findSections("show")
     for section in sections:
@@ -70,16 +66,11 @@ class Plex():
                 if results != None: 
                   episodes += str(results.group(0)) + ", "
                   db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
-                  logging.debug("Found episode: " + str(results.group(0)))
+                  logger.debug("Found episode: " + str(results.group(0)))
             episodes = episodes.rstrip(", ")
             db.commit()
-            # if episodes != "": 
-            #   print('{0:50} | {1:10} | {2:30}'.format(title, season.get('title'), episodes))
 
   def backupMovies(self):
-    # print("MOVIES ###################################################################################################################")
-    # print('{0:50} | {1:10} | {2:30}'.format("Name:", "Watched:", "IMDB ID:"))
-
     sections = self.findSections("movie")
     for section in sections:
       ## retrieve movies
@@ -98,7 +89,7 @@ class Plex():
               print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
               db.commit()
-              logging.debug("Found movie: " + str(results.group(0)))
+              logger.debug("Found movie: " + str(results.group(0)))
 
   def restoreShows(self):
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
@@ -125,8 +116,8 @@ class Plex():
         seenurl = self.plexlocation + "/:/scrobble?key=" + itemkey + "&identifier=com.plexapp.plugins.library"
         seenreq = poolmanager.request('GET', seenurl,  headers={'X-Plex-Token': self.plextoken})
         if seenreq.status == 200:
-          print("Updated: " + itemid)
+          logger.info("Updated: " + itemid)
         else:
-          print("Error: " + seenreq.status + " - " + itemid)
+          logger.error(seenreq.status + " - " + itemid)
       elif int(root.get('size')) > 1:
-        print("ERROR:" + itemid)
+        logger.error(itemid)
