@@ -1,12 +1,12 @@
-import urllib3, os, re, json
+import urllib3, os, re, json, logging
 from .db import db
 from .poolmanager import poolmanager
 
 __all__ = ['Kodi']
 
 class Kodi():
-  def __init__(self):
-    self.kodilocation = os.environ['KODILOCATION']
+  def __init__(self, location="http://127.0.0.1:8080"):
+    self.kodilocation = location
     self.url = self.kodilocation + "/jsonrpc"
     self.listShow = None
 
@@ -98,7 +98,7 @@ class Kodi():
       for show in results["result"]["tvshows"]:
         #TODO: fix this in the query to kodi, but couldnt get it to work
         if show["imdbnumber"] != "":
-          print('{0:50} | {1:10} | {2:30}'.format(show["label"], str(show["imdbnumber"]), str(show["tvshowid"])))
+          #print('{0:50} | {1:10} | {2:30}'.format(show["label"], str(show["imdbnumber"]), str(show["tvshowid"])))
           episodes_payload = {
             "jsonrpc": "2.0",
             "method": "VideoLibrary.GetEpisodes",

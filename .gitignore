@@ -2,3 +2,5 @@
 media.db
 .vscode
 *__pycache__/
+settings.yaml
+*.log

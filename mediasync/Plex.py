@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as etree
-import urllib3, os, re
+import urllib3, os, re, logging
 from .db import db
 from .poolmanager import poolmanager
 
@@ -8,9 +8,11 @@ __all__ = ['Plex']
 
 class Plex():
 
-  def __init__(self, *args):
-    self.plexlocation = os.environ['PLEXLOCATION']
-    self.plextoken = os.environ['PLEXTOKEN']
+  def __init__(self, location="http://127.0.0.1:32400", token=None, *args):
+    self.plexlocation = location
+    self.plextoken = token
+    logging.info("New Plex instance at: " + str(self.plexlocation))
+
     #self.http = urllib3.PoolManager()
   
   def __enter__(self):
@@ -42,8 +44,8 @@ class Plex():
     return sections
 
   def backupShows(self):
-    print("TV SHOWS #################################################################################################################")
-    print('{0:50} | {1:10} | {2:30}'.format("Name:", "Season:", "Episodes:"))
+    #print("TV SHOWS #################################################################################################################")
+    #print('{0:50} | {1:10} | {2:30}'.format("Name:", "Season:", "Episodes:"))
     
     ## retrieve shows
     sections = self.findSections("show")
@@ -51,7 +53,7 @@ class Plex():
       root = self.retrieveSection(section)
 
       for show in root.iter('Directory'):
-        title = show.get('title')
+        #title = show.get('title')
         seasonroot = self.retrieveChild(show)
 
         for season in seasonroot.iter('Directory'):
@@ -68,14 +70,15 @@ class Plex():
                 if results != None: 
                   episodes += str(results.group(0)) + ", "
                   db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
+                  logging.debug("Found episode: " + str(results.group(0)))
             episodes = episodes.rstrip(", ")
             db.commit()
-            if episodes != "": 
-              print('{0:50} | {1:10} | {2:30}'.format(title, season.get('title'), episodes))
+            # if episodes != "": 
+            #   print('{0:50} | {1:10} | {2:30}'.format(title, season.get('title'), episodes))
 
   def backupMovies(self):
-    print("MOVIES ###################################################################################################################")
-    print('{0:50} | {1:10} | {2:30}'.format("Name:", "Watched:", "IMDB ID:"))
+    # print("MOVIES ###################################################################################################################")
+    # print('{0:50} | {1:10} | {2:30}'.format("Name:", "Watched:", "IMDB ID:"))
 
     sections = self.findSections("movie")
     for section in sections:
@@ -95,6 +98,7 @@ class Plex():
               print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
               db.commit()
+              logging.debug("Found movie: " + str(results.group(0)))
 
   def restoreShows(self):
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
