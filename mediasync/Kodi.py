@@ -80,6 +80,8 @@ class Kodi():
         returnvalues.append(episode["episodeid"])
       return returnvalues
 
+  # def getMovieIDbyIMDBNR(self):
+  #   print("placeholder")
 
   def backupShows(self):
     payload = {
@@ -127,6 +129,30 @@ class Kodi():
               db.commit()
     else:
       logger.error("no tv shows")
+
+  def backupMovies(self):
+    payload = {
+      "jsonrpc": "2.0",
+      "method": "VideoLibrary.GetMovies",
+      "params": {
+        "filter": {
+          "field": "playcount",
+          "operator": "greaterthan",
+          "value": "0"
+        },
+        "properties": [
+          "title",
+          "imdbnumber",
+          "playcount"
+        ]
+      },
+      "id": "libMovies"
+    }
+    m_results = self.kodiRequest(payload)
+    for movie in m_results["result"]["movies"]:
+      db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(movie["imdbnumber"]))
+      db.commit()
+      logger.debug("insert or ignore: " + movie["imdbnumber"])
 
   def setSeen(self, bla):
     logger.debug('bla')

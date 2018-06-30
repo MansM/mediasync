@@ -20,6 +20,16 @@ def main():
 
   for kodi in settings.kodis:
     kodi.backupShows()
+    kodi.backupMovies()
+
+  for plex in settings.plexes:
+    plex.restoreShows()
+    plex.restoreMovies()
+
+  for kodi in settings.kodis:
+    kodi.restoreShows()
+
+  
 
   logger.debug("log end")
  

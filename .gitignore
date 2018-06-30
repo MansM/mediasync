@@ -4,3 +4,4 @@ media.db
 *__pycache__/
 settings.yaml
 *.log
+*.pyc
