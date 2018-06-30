@@ -10,6 +10,9 @@ In the settings.example.yaml there are some example settings. You can currently 
 Just copy it to settings.yaml and configure it for your setup.
 For now its just unauthenticated Kodi.
 
+## Plex token
+How to find your token for Plex can be read [here](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)
+
 ## Currently doing this:
 get all seen from plex and kodi, and writing all shows and movies to plex, but only shows to kodi.
 
