@@ -10,6 +10,7 @@ class Kodi():
     self.kodilocation = location
     self.url = self.kodilocation + "/jsonrpc"
     self.listShow = None
+    self.listMovies = None
 
   def __enter__(self):
     return self
@@ -80,10 +81,35 @@ class Kodi():
         returnvalues.append(episode["episodeid"])
       return returnvalues
 
-  # def getMovieIDbyIMDBNR(self):
-  #   print("placeholder")
+  def getMovieIDbyIMDBNR(self, imdbnr):
+    #print("placeholder")
+    if self.listMovies == None:
+      payload = {
+        "jsonrpc": "2.0",
+        "method": "VideoLibrary.GetMovies",
+        "params": {
+          "properties": [
+            "title",
+            "imdbnumber",
+            "playcount"
+          ]
+        },
+        "id": "libMovies"
+      }
+      self.listMovies = self.kodiRequest(payload)["result"]["movies"]
+
+    returnvalues = []
+    for movie in self.listMovies:
+      #print(movie)
+      #print(imdbnr)
+      if movie["imdbnumber"] == imdbnr[7:]:
+        returnvalues.append(movie["movieid"])
+        # print(movie)
+    return returnvalues
+
 
   def backupShows(self):
+    print("backing up kodi shows")
     payload = {
       "jsonrpc": "2.0",
       "method": "VideoLibrary.GetTVShows",
@@ -131,6 +157,7 @@ class Kodi():
       logger.error("no tv shows")
 
   def backupMovies(self):
+    print("backing up kodi movies")
     payload = {
       "jsonrpc": "2.0",
       "method": "VideoLibrary.GetMovies",
@@ -158,6 +185,7 @@ class Kodi():
     logger.debug('bla')
 
   def restoreShows(self):
+    print("restoring up kodi shows")
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
       episodeids = self.getEpisodeid(row[0])
       if episodeids != None:
@@ -173,5 +201,17 @@ class Kodi():
           self.kodiRequest(payload)
 
   def restoreMovies(self):
+    print("restoring up kodi movies")
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'imdb://%'"):
-      self.setSeen(row[0])
+      for id in self.getMovieIDbyIMDBNR(row[0]):
+        payload = {
+          "jsonrpc": "2.0",
+          "method": "VideoLibrary.SetMovieDetails",
+          "params": {
+            "episodeid": id,
+            "playcount": 1
+          }
+        }
+        self.kodiRequest(payload)
+    
+  

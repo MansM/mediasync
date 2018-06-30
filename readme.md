@@ -13,8 +13,8 @@ For now its just unauthenticated Kodi.
 ## Plex token
 How to find your token for Plex can be read [here](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)
 
-## Currently doing this:
-get all seen from plex and kodi, and writing all shows and movies to plex, but only shows to kodi.
+## Currently status:
+Everything is backed up and synced to kodi and plex. You cant do partials yet
 
 ## Help wanted
 As I am not a seasoned python developer. Feel free to help out/tell me I do something wrong.

@@ -43,6 +43,7 @@ class Plex():
     return sections
 
   def backupShows(self):
+    print("backing up plex shows")
     ## retrieve shows
     sections = self.findSections("show")
     for section in sections:
@@ -71,6 +72,7 @@ class Plex():
             db.commit()
 
   def backupMovies(self):
+    print("backing up plex movies")
     sections = self.findSections("movie")
     for section in sections:
       ## retrieve movies
@@ -86,16 +88,18 @@ class Plex():
             regex = r"imdb://tt\d+"
             results = re.search(regex, meta.get('guid'))
             if results != None: 
-              print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
+              #print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
               db.commit()
               logger.debug("Found movie: " + str(results.group(0)))
 
   def restoreShows(self):
+    print("restoring plex shows")
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'thetvdb://%'"):
       self.setPlexSeen(row[0])
 
   def restoreMovies(self):
+    print("restoring plex movies")
     for row in db.execute("SELECT * FROM media WHERE id LIKE 'imdb://%'"):
       self.setPlexSeen(row[0])
 

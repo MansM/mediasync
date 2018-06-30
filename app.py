@@ -17,6 +17,7 @@ def main():
 
   for plex in settings.plexes:
     plex.backupShows()
+    plex.backupMovies()
 
   for kodi in settings.kodis:
     kodi.backupShows()
@@ -28,6 +29,7 @@ def main():
 
   for kodi in settings.kodis:
     kodi.restoreShows()
+    kodi.restoreMovies()
 
   
 
