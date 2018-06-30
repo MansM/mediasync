@@ -10,6 +10,9 @@ In the settings.example.yaml there are some example settings. You can currently 
 Just copy it to settings.yaml and configure it for your setup.
 For now its just unauthenticated Kodi.
 
+## Currently doing this:
+get all seen from plex and kodi, and writing all shows and movies to plex, but only shows to kodi.
+
 ## Help wanted
 As I am not a seasoned python developer. Feel free to help out/tell me I do something wrong.
 Due to the fact this project is really early in its development, I am still changing some directions while I 
