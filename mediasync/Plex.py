@@ -112,7 +112,7 @@ class Plex():
 
     req = poolmanager.request('GET', url,  headers={'X-Plex-Token': self.plextoken})
     root = etree.fromstring(req._body.decode("utf8"))
-    if int(root.get('size')) == 1: 
+    if int(root.get('size')) == 1:
       if root.find("Video").get("viewCount") is None:
         itemkey = root.find("Video").get("ratingKey")
         seenurl = self.plexlocation + "/:/scrobble?key=" + itemkey + "&identifier=com.plexapp.plugins.library"

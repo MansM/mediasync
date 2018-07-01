@@ -207,7 +207,7 @@ class Kodi():
     }
     m_results = self.kodiRequest(payload)
     for movie in m_results["result"]["movies"]:
-      db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(movie["imdbnumber"]))
+      db.execute("INSERT OR IGNORE INTO media(id) VALUES('imdb://%s')" % str(movie["imdbnumber"]))
       db.commit()
       logger.debug("insert or ignore: " + movie["imdbnumber"])
 
