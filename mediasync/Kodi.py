@@ -6,11 +6,13 @@ from .Logger import logger
 __all__ = ['Kodi']
 
 class Kodi():
-  def __init__(self, location="http://127.0.0.1:8080"):
+  def __init__(self, location="http://127.0.0.1:8080", username=None, password=None):
     self.kodilocation = location
     self.url = self.kodilocation + "/jsonrpc"
     self.listShow = None
     self.listMovies = None
+    if username: self.username = username
+    if password: self.password = password
 
   def __enter__(self):
     return self
@@ -97,7 +99,7 @@ class Kodi():
         "id": "libMovies"
       }
       self.listMovies = self.kodiRequest(payload)["result"]["movies"]
-
+    
     returnvalues = []
     for movie in self.listMovies:
       #print(movie)
@@ -105,8 +107,8 @@ class Kodi():
       if movie["imdbnumber"] == imdbnr[7:]:
         returnvalues.append(movie["movieid"])
         # print(movie)
+    
     return returnvalues
-
 
   def backupShows(self):
     print("backing up kodi shows")
@@ -208,7 +210,7 @@ class Kodi():
           "jsonrpc": "2.0",
           "method": "VideoLibrary.SetMovieDetails",
           "params": {
-            "episodeid": id,
+            "movieid": id,
             "playcount": 1
           }
         }

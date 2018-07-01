@@ -80,7 +80,6 @@ class Plex():
       root.findall("./Video")
 
       for video in root.iter('Video'):
-        title = video.get('title')
         vc = video.get('viewCount') or 0
         if vc:
             metaroot = self.retrieveChild(video)
@@ -88,7 +87,6 @@ class Plex():
             regex = r"imdb://tt\d+"
             results = re.search(regex, meta.get('guid'))
             if results != None: 
-              #print('{0:50} | {1:10} | {2:30}'.format(title, str(vc), results.group(0)))
               db.execute("INSERT OR IGNORE INTO media(id) VALUES('%s')" % str(results.group(0)))
               db.commit()
               logger.debug("Found movie: " + str(results.group(0)))

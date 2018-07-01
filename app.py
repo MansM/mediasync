@@ -3,8 +3,10 @@ from mediasync import Plex
 from mediasync import Kodi
 from mediasync import Settings
 from mediasync.Logger import logger
+#from mediasync.poolmanager import poolmanager
 
-import yaml, logging
+
+#import yaml, logging, base64
 
 def main():
 
@@ -31,8 +33,14 @@ def main():
     kodi.restoreShows()
     kodi.restoreMovies()
 
-  
+  #poolmanager.http.headers["user"] = "kodi"
+  # raw = bytes("%s:%s"%("kodi", str(1)), "UTF-8")
+  # #print(raw)
+  # auth = "Basic %s"  % base64.b64encode(raw).strip().decode("utf-8")
+  # poolmanager.http.headers["Authorization"] = auth
+  # r = poolmanager.request('POST', "http://10.0.1.53:8080/jsonrpc", body=None, headers={"Content-Type": "application/json", "Authorization": auth})
 
+  # print(r.status)
   logger.debug("log end")
  
   # plex.restoreMovies()
