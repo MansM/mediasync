@@ -31,8 +31,12 @@ class Settings():
 
     try:
       for kodiinstance in self.settings["kodi"]:
-        self.kodis.append(Kodi(kodiinstance["location"]))
-    except: pass
+        if "username" in kodiinstance and "password" in kodiinstance:
+          self.kodis.append(Kodi(kodiinstance["location"], kodiinstance["username"], kodiinstance["password"]))
+        else: self.kodis.append(Kodi(kodiinstance["location"]))
+    except Exception as e: 
+      print("blah" + str(e))
+      pass
 
     
 

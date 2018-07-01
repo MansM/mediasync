@@ -1,4 +1,4 @@
-import urllib3, os, re, json
+import urllib3, os, re, json, base64, sys
 from .db import db
 from .poolmanager import poolmanager
 from .Logger import logger
@@ -7,12 +7,28 @@ __all__ = ['Kodi']
 
 class Kodi():
   def __init__(self, location="http://127.0.0.1:8080", username=None, password=None):
+    logger.info("New kodi instance at " + location)
     self.kodilocation = location
     self.url = self.kodilocation + "/jsonrpc"
     self.listShow = None
     self.listMovies = None
-    if username: self.username = username
-    if password: self.password = password
+    self.username = username
+    self.password = password
+
+    if self.username != None and self.password != None:
+      raw = bytes("%s:%s"%(str(self.username), str(self.password)), "UTF-8")
+      auth = "Basic %s"  % base64.b64encode(raw).strip().decode("utf-8")
+      poolmanager.http.headers["Authorization"] = auth
+      r = poolmanager.request('POST', "http://10.0.1.53:8080/jsonrpc", body=None, headers={"Content-Type": "application/json", "Authorization": auth})
+      if r.status == 401:
+        logger.error("invalid credentials/kodi")
+        sys.exit("invalid kodi credentials")
+    else:
+      r = poolmanager.request('POST', self.url, body=None, headers={"Content-Type": "application/json"})
+      if r.status == 401:
+        logger.error("invalid credentials/kodi")
+        quit("invalid kodi credentials")
+
 
   def __enter__(self):
     return self
@@ -21,7 +37,19 @@ class Kodi():
     encoded_data = json.dumps(payload).encode('utf-8')
     r = ""
     try:
-      r = poolmanager.request('POST', self.url, body=encoded_data, headers={"Content-Type": "application/json"})
+      if self.username != None and self.password != None:
+        raw = bytes("%s:%s"%(str(self.username), str(self.password)), "UTF-8")
+        auth = "Basic %s"  % base64.b64encode(raw).strip().decode("utf-8")
+        poolmanager.http.headers["Authorization"] = auth
+        r = poolmanager.request('POST', "http://10.0.1.53:8080/jsonrpc", body=encoded_data, headers={"Content-Type": "application/json", "Authorization": auth})
+        if r.status == 401:
+          logger.error("invalid credentials/kodi")
+          sys.exit("invalid kodi credentials")
+      else:
+        r = poolmanager.request('POST', self.url, body=encoded_data, headers={"Content-Type": "application/json"})
+        if r.status == 401:
+          logger.error("invalid credentials/kodi")
+          quit("invalid kodi credentials")
       return json.loads(r._body.decode("utf8"))
     except (urllib3.exceptions.ProtocolError):
       return None
