@@ -3,6 +3,7 @@ import sqlite3, logging, atexit
 class DB(object):
   def __init__(self):
     self.conn = sqlite3.connect('media.db')
+    self.execute("CREATE TABLE IF NOT EXISTS media (id text, UNIQUE (id));")
     atexit.register(self.cleanup)
 
   # def __del__(self):
