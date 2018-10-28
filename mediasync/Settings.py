@@ -1,4 +1,4 @@
-import yaml, logging
+import yaml, logging, os
 from mediasync import Kodi
 from mediasync import Plex
 
@@ -9,7 +9,8 @@ class Settings():
   def __init__(self):
     self.plexes, self.kodis = [], []
     try:
-      settingsfile = open("settings.yaml", 'r').read()
+      fileloc = os.environ.get('MEDIASYNC_CONF', "settings.yaml")
+      settingsfile = open(fileloc, 'r').read()
     except:
       exit("No Settings file available")
     
