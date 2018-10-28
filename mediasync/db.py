@@ -1,8 +1,9 @@
-import sqlite3, logging, atexit
+import sqlite3, logging, atexit, os
 
 class DB(object):
   def __init__(self):
-    self.conn = sqlite3.connect('media.db')
+    dbloc = os.environ.get('MEDIASYNC_DBLOC', "media.db")
+    self.conn = sqlite3.connect(dbloc)
     self.execute("CREATE TABLE IF NOT EXISTS media (id text, UNIQUE (id));")
     atexit.register(self.cleanup)
 
