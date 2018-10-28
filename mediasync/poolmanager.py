@@ -4,7 +4,7 @@ from .Logger import logger
 
 class PoolManager(object):
   def __init__(self):
-    self.http = urllib3.PoolManager((maxsize=10)
+    self.http = urllib3.PoolManager(maxsize=10)
     self.counter=0
     atexit.register(self.cleanup)
 
