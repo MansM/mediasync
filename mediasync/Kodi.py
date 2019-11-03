@@ -41,7 +41,7 @@ class Kodi():
         raw = bytes("%s:%s"%(str(self.username), str(self.password)), "UTF-8")
         auth = "Basic %s"  % base64.b64encode(raw).strip().decode("utf-8")
         poolmanager.http.headers["Authorization"] = auth
-        r = poolmanager.request('POST', "http://10.0.1.53:8080/jsonrpc", body=encoded_data, headers={"Content-Type": "application/json", "Authorization": auth})
+        r = poolmanager.request('POST', self.url, body=encoded_data, headers={"Content-Type": "application/json", "Authorization": auth})
         if r.status == 401:
           logger.error("invalid credentials/kodi")
           sys.exit("invalid kodi credentials")
