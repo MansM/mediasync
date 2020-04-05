@@ -2,8 +2,9 @@
 media.db
 .vscode
 *__pycache__/
-settings.yaml
+*/settings.yaml
 *.log
 *.pyc
 .idea
 venv
+config/
