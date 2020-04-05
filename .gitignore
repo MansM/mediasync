@@ -5,3 +5,5 @@ media.db
 settings.yaml
 *.log
 *.pyc
+.idea
+venv

@@ -1,0 +1,10 @@
+plex:
+  - name: shield
+    location: http://10.0.2.4:32400
+    token: UyJEM-eDMxzME5-cJrFK
+kodi: 
+  - name: shieldkodi
+    location: http://10.0.2.75:8080
+log:
+  file: output.log
+  level: DEBUG
